@@ -225,10 +225,12 @@ __marimo__/
 
 # Terraform
 .terraform/
+.terraform.lock.hcl
 *.tfplan
 *.tfstate.lock.*
 *.tfstate.backup
 *.tfstate
+terraform.tfvars
 crash.log
 crash.*.log
 .terraformrc
