@@ -106,3 +106,74 @@ variable "allowed_cidr_blocks" {
   type        = list(string)
   default     = []
 }
+
+# ── Elastic Beanstalk ─────────────────────────────────────────────────────────
+
+variable "eb_instance_type" {
+  description = "EC2 instance type for Beanstalk instances"
+  type        = string
+  default     = "t3.micro"
+}
+
+variable "eb_min_instances" {
+  description = "Minimum number of EC2 instances in the Auto Scaling group"
+  type        = number
+  default     = 3
+}
+
+variable "eb_max_instances" {
+  description = "Maximum number of EC2 instances in the Auto Scaling group"
+  type        = number
+  default     = 6
+}
+
+variable "deployment_policy" {
+  description = "Beanstalk deployment strategy: AllAtOnce | Rolling | RollingWithAdditionalBatch | Immutable"
+  type        = string
+  default     = "AllAtOnce"
+
+  validation {
+    condition     = contains(["AllAtOnce", "Rolling", "RollingWithAdditionalBatch", "Immutable"], var.deployment_policy)
+    error_message = "deployment_policy must be one of: AllAtOnce, Rolling, RollingWithAdditionalBatch, Immutable."
+  }
+}
+
+variable "batch_size_type" {
+  description = "Type for batch size: Fixed | Percentage"
+  type        = string
+  default     = "Fixed"
+}
+
+variable "batch_size" {
+  description = "Number or percentage of instances to deploy in each batch (for Rolling strategies)"
+  type        = number
+  default     = 1
+}
+
+variable "app_version" {
+  description = "Application version label. Change this to trigger a new deployment."
+  type        = string
+  default     = "v1"
+}
+
+# ── Application Secrets ───────────────────────────────────────────────────────
+
+variable "jwt_secret_key" {
+  description = "Secret key used to sign JWT tokens"
+  type        = string
+  default     = "change-this-secret"
+  sensitive   = true
+}
+
+variable "auth_username" {
+  description = "Username for API authentication"
+  type        = string
+  default     = "admin"
+}
+
+variable "auth_password" {
+  description = "Password for API authentication"
+  type        = string
+  default     = "admin"
+  sensitive   = true
+}

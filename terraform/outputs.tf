@@ -59,3 +59,30 @@ output "database_url" {
   value       = "postgresql://${var.db_username}:****@${aws_db_instance.main.endpoint}/${var.db_name}"
   sensitive   = true
 }
+
+# ── Elastic Beanstalk ─────────────────────────────────────────────────────────
+
+output "beanstalk_url" {
+  description = "URL of the Elastic Beanstalk environment (access your API here)"
+  value       = "http://${aws_elastic_beanstalk_environment.blacklist.cname}"
+}
+
+output "beanstalk_env_name" {
+  description = "Name of the Elastic Beanstalk environment"
+  value       = aws_elastic_beanstalk_environment.blacklist.name
+}
+
+output "beanstalk_deployment_policy" {
+  description = "Active deployment policy for the current apply"
+  value       = var.deployment_policy
+}
+
+output "beanstalk_app_version" {
+  description = "Active application version label"
+  value       = var.app_version
+}
+
+output "alb_security_group_id" {
+  description = "ID of the ALB security group"
+  value       = aws_security_group.alb.id
+}

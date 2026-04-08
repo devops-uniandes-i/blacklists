@@ -20,9 +20,32 @@ db_engine_version    = "16.3"
 db_multi_az          = false
 
 # Set to true in production
-db_deletion_protection = false
-db_skip_final_snapshot = true
+db_deletion_protection     = false
+db_skip_final_snapshot     = true
 db_backup_retention_period = 0   # free tier no permite backups automáticos
 
 # Optional: CIDR of a bastion host or CI runner that needs direct DB access
 # allowed_cidr_blocks = ["203.0.113.10/32"]
+
+# ── Elastic Beanstalk ─────────────────────────────────────────────────────────
+
+eb_instance_type  = "t3.micro"
+eb_min_instances  = 3
+eb_max_instances  = 6
+
+# Deployment strategy: AllAtOnce | Rolling | RollingWithAdditionalBatch | Immutable
+# Cambia este valor junto con app_version para probar cada estrategia.
+# Recomendado: usar los comandos `make deploy-*` del Makefile.
+deployment_policy = "AllAtOnce"
+batch_size_type   = "Fixed"
+batch_size        = 1
+
+# Versión de la aplicación. Cambia este valor para forzar un nuevo despliegue.
+# Los comandos `make deploy-*` usan un timestamp automático.
+app_version = "v1"
+
+# ── Secrets de la Aplicación ──────────────────────────────────────────────────
+
+jwt_secret_key = "CHANGE_ME_jwt_secret_key_very_long_and_random"
+auth_username  = "admin"
+auth_password  = "CHANGE_ME_admin_password"
