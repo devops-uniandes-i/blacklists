@@ -1,0 +1,649 @@
+{
+  "info": {
+    "_postman_id": "34c54b3b-8eb5-4fc9-a78b-99eea5740367",
+    "name": "Blacklist",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "2827058"
+  },
+  "item": [
+    {
+      "name": "Healthcheck",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Message response is correct\", function() {\r",
+              "    pm.expect(pm.response.text()).to.equal('\"pong\"\\n')\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://{{DOMAIN_URL}}/health",
+          "protocol": "http",
+          "host": [
+            "{{DOMAIN_URL}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Search email Invalid Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"status code is 401\", function(){\r",
+              "    pm.response.to.have.status(401);\r",
+              "})\r",
+              "\r",
+              "pm.test(\"Correct message\", function(){\r",
+              "    pm.expect(pm.response.json().mensaje).to.equal(\"Token invalido\")\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "12345",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://{{DOMAIN_URL}}/blacklists/test@test.com",
+          "protocol": "http",
+          "host": [
+            "{{DOMAIN_URL}}"
+          ],
+          "path": [
+            "blacklists",
+            "test@test.com"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Search email No Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"status code is 401\", function() {\r",
+              "    pm.response.to.have.status(401);\r",
+              "})\r",
+              "\r",
+              "pm.test(\"Message response is correct\", function() {\r",
+              "    pm.expect(pm.response.json().mensaje).to.equal(\"Token no enviado o formato Bearer invalido\")\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://{{DOMAIN_URL}}/blacklists/test@test.com",
+          "protocol": "http",
+          "host": [
+            "{{DOMAIN_URL}}"
+          ],
+          "path": [
+            "blacklists",
+            "test@test.com"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Auth with insufficient params",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"400 response code\", function(){\r",
+              "    pm.response.to.have.status(400);\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://{{DOMAIN_URL}}/auth/token",
+          "protocol": "http",
+          "host": [
+            "{{DOMAIN_URL}}"
+          ],
+          "path": [
+            "auth",
+            "token"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Auth with invalid credentials",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"status code is 401\", function() {\r",
+              "    pm.response.to.have.status(401);\r",
+              "})\r",
+              "\r",
+              "pm.test(\"Message response is correct\", function() {\r",
+              "    pm.expect(pm.response.json().mensaje).to.equal(\"Credenciales inválidas\")\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"username\": \"invaliduser\",\r\n    \"password\": \"invalidpassword\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://{{DOMAIN_URL}}/auth/token",
+          "protocol": "http",
+          "host": [
+            "{{DOMAIN_URL}}"
+          ],
+          "path": [
+            "auth",
+            "token"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Auth",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"status code is 200\", function() {\r",
+              "    pm.response.to.have.status(200);\r",
+              "})\r",
+              "\r",
+              "pm.environment.set(\"TOKEN\", pm.response.json().token)"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"admin\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://{{DOMAIN_URL}}/auth/token",
+          "protocol": "http",
+          "host": [
+            "{{DOMAIN_URL}}"
+          ],
+          "path": [
+            "auth",
+            "token"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get email not blacklisted",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"status code is 404\", function() {\r",
+              "    pm.response.to.have.status(404);\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://{{DOMAIN_URL}}/blacklists/notblacklisted@gmail.com",
+          "protocol": "http",
+          "host": [
+            "{{DOMAIN_URL}}"
+          ],
+          "path": [
+            "blacklists",
+            "notblacklisted@gmail.com"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get blacklist case no email",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"status code is 400\", function() {\r",
+              "    pm.response.to.have.status(400);\r",
+              "})\r",
+              "\r",
+              "pm.test(\"Message response is correct\", function() {\r",
+              "    pm.expect(pm.response.json().mensaje).to.equal(\"El parámetro email es obligatorio y debe ser válido\")\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://{{DOMAIN_URL}}/blacklists/a",
+          "protocol": "http",
+          "host": [
+            "{{DOMAIN_URL}}"
+          ],
+          "path": [
+            "blacklists",
+            "a"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create blacklist case incomplete params",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"status code is 400\", function() {\r",
+              "    pm.response.to.have.status(400);\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://{{DOMAIN_URL}}/blacklists",
+          "protocol": "http",
+          "host": [
+            "{{DOMAIN_URL}}"
+          ],
+          "path": [
+            "blacklists"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create blacklist case invalid UUID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"status code is 400\", function() {\r",
+              "    pm.response.to.have.status(400);\r",
+              "})\r",
+              "\r",
+              "pm.test(\"Message response is correct\", function() {\r",
+              "    pm.expect(pm.response.json().mensaje).to.equal(\"El campo app_uuid es obligatorio y debe ser un UUID válido\")\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\":\"{{$randomEmail}}\",\r\n    \"app_uuid\":\"210902\",\r\n    \"blocked_reason\":\"{{$randomCatchPhrase}}\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://{{DOMAIN_URL}}/blacklists",
+          "protocol": "http",
+          "host": [
+            "{{DOMAIN_URL}}"
+          ],
+          "path": [
+            "blacklists"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create blacklist",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"status code is 201\", function() {\r",
+              "    pm.response.to.have.status(201);\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\":\"{{$randomEmail}}\",\r\n    \"app_uuid\":\"0054da1d-8682-482e-aa15-c79891c625a5\",\r\n    \"blocked_reason\":\"Spam\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://{{DOMAIN_URL}}/blacklists",
+          "protocol": "http",
+          "host": [
+            "{{DOMAIN_URL}}"
+          ],
+          "path": [
+            "blacklists"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create blacklist case duplicate email",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('duplicate email: status code is 412', function () {",
+              "  pm.response.to.have.status(412);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "const domain = pm.variables.get('DOMAIN_URL'); // env/collection/global all supported",
+              "const token = pm.variables.get('TOKEN');",
+              "",
+              "pm.test('DOMAIN_URL is set', () => pm.expect(domain, 'DOMAIN_URL').to.be.ok);",
+              "pm.test('TOKEN is set', () => pm.expect(token, 'TOKEN').to.be.ok);",
+              "",
+              "const duplicateEmail = pm.variables.replaceIn('{{$randomEmail}}');",
+              "pm.collectionVariables.set('duplicateEmail', duplicateEmail);",
+              "",
+              "const firstRequestBody = {",
+              "  email: duplicateEmail,",
+              "  app_uuid: '0054da1d-8682-482e-aa15-c79891c625a5',",
+              "  blocked_reason: 'Spam'",
+              "};",
+              "",
+              "const firstResponse = await new Promise((resolve, reject) => {",
+              "  pm.sendRequest({",
+              "    url: `http://${domain}/blacklists`,",
+              "    method: 'POST',",
+              "    header: {",
+              "      'Content-Type': 'application/json',",
+              "      'Authorization': `Bearer ${token}`",
+              "    },",
+              "    body: {",
+              "      mode: 'raw',",
+              "      raw: JSON.stringify(firstRequestBody)",
+              "    }",
+              "  }, (err, res) => err ? reject(err) : resolve(res));",
+              "});",
+              "",
+              "console.log('First insert status:', firstResponse.code);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\":\"{{duplicateEmail}}\",\r\n    \"app_uuid\":\"0054da1d-8682-482e-aa15-c79891c625a5\",\r\n    \"blocked_reason\":\"Spam\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://{{DOMAIN_URL}}/blacklists",
+          "protocol": "http",
+          "host": [
+            "{{DOMAIN_URL}}"
+          ],
+          "path": [
+            "blacklists"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "DOMAIN_URL",
+      "value": ""
+    },
+    {
+      "key": "VALID_USERNAME",
+      "value": ""
+    },
+    {
+      "key": "VALID_PASSWORD",
+      "value": ""
+    },
+    {
+      "key": "duplicateEmail",
+      "value": ""
+    }
+  ]
+}
