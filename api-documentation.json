@@ -1,0 +1,417 @@
+{
+  "info": {
+    "_postman_id": "blacklist-api-docs-v1",
+    "name": "Blacklist API - Documentación",
+    "description": "# Blacklist API\n\nAPI REST para gestionar listas negras de correos electrónicos. Permite registrar emails bloqueados y consultar si un email se encuentra en la lista negra.\n\n## Autenticación\nTodos los endpoints (excepto `/health` y `/auth/token`) requieren autenticación mediante **Bearer Token**.\n\nPrimero obtén un token con `POST /auth/token` y úsalo como `Authorization: Bearer <token>`.\n\n## Variables de entorno requeridas\n| Variable | Descripción |\n|---|---|\n| `DOMAIN_URL` | URL base del servidor (ej: `localhost:5000`) |\n| `VALID_USERNAME` | Usuario válido para autenticación |\n| `VALID_PASSWORD` | Contraseña válida para autenticación |\n| `TOKEN` | Token JWT obtenido tras autenticarse (se asigna automáticamente) |",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Healthcheck",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{DOMAIN_URL}}/health",
+              "protocol": "http",
+              "host": ["{{DOMAIN_URL}}"],
+              "path": ["health"]
+            },
+            "description": "Verifica que el servicio esté en línea y respondiendo correctamente.\n\n**Autenticación:** No requerida\n\n**Respuestas:**\n- `200 OK`"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://{{DOMAIN_URL}}/health",
+                  "protocol": "http",
+                  "host": ["{{DOMAIN_URL}}"],
+                  "path": ["health"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "\"pong\""
+            }
+          ]
+        }
+      ],
+      "description": "Endpoints de monitoreo y estado del servicio."
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Obtener Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"{{VALID_USERNAME}}\",\n    \"password\": \"{{VALID_PASSWORD}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "http://{{DOMAIN_URL}}/auth/token",
+              "protocol": "http",
+              "host": ["{{DOMAIN_URL}}"],
+              "path": ["auth", "token"]
+            },
+            "description": "Genera un token de autenticación JWT a partir de credenciales válidas.\n\n**Autenticación:** No requerida\n\n**Body (JSON):**\n| Campo | Tipo | Requerido | Descripción |\n|---|---|---|---|\n| `username` | string | ✅ | Nombre de usuario |\n| `password` | string | ✅ | Contraseña |\n\n**Respuestas:**\n- `200 OK` – Retorna el token JWT.\n- `400 Bad Request` – Parámetros insuficientes.\n- `401 Unauthorized` – `{ \"mensaje\": \"Credenciales inválidas\" }`"
+          },
+          "response": [
+            {
+              "name": "200 OK - Token generado",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"username\": \"{{VALID_USERNAME}}\",\n    \"password\": \"{{VALID_PASSWORD}}\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "http://{{DOMAIN_URL}}/auth/token",
+                  "protocol": "http",
+                  "host": ["{{DOMAIN_URL}}"],
+                  "path": ["auth", "token"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n    \"token\": \"<jwt_token>\"\n}"
+            },
+            {
+              "name": "400 Bad Request - Parámetros insuficientes",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "http://{{DOMAIN_URL}}/auth/token",
+                  "protocol": "http",
+                  "host": ["{{DOMAIN_URL}}"],
+                  "path": ["auth", "token"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": ""
+            },
+            {
+              "name": "401 Unauthorized - Credenciales inválidas",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"username\": \"invaliduser\",\n    \"password\": \"invalidpassword\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "http://{{DOMAIN_URL}}/auth/token",
+                  "protocol": "http",
+                  "host": ["{{DOMAIN_URL}}"],
+                  "path": ["auth", "token"]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n    \"mensaje\": \"Credenciales inválidas\"\n}"
+            }
+          ]
+        }
+      ],
+      "description": "Endpoints de autenticación. Permite obtener el token JWT necesario para consumir los demás endpoints."
+    },
+    {
+      "name": "Blacklists",
+      "item": [
+        {
+          "name": "Agregar email a la blacklist",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{TOKEN}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"usuario@ejemplo.com\",\n    \"app_uuid\": \"0054da1d-8682-482e-aa15-c79891c625a5\",\n    \"blocked_reason\": \"Spam\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "http://{{DOMAIN_URL}}/blacklists",
+              "protocol": "http",
+              "host": ["{{DOMAIN_URL}}"],
+              "path": ["blacklists"]
+            },
+            "description": "Registra un correo electrónico en la lista negra.\n\n**Autenticación:** Bearer Token requerido\n\n**Body (JSON):**\n| Campo | Tipo | Requerido | Descripción |\n|---|---|---|---|\n| `email` | string | ✅ | Dirección de correo a bloquear |\n| `app_uuid` | string (UUID v4) | ✅ | UUID de la aplicación que origina el bloqueo |\n| `blocked_reason` | string | ❌ | Motivo del bloqueo |\n\n**Respuestas:**\n- `201 Created` – Email registrado exitosamente.\n- `400 Bad Request` – Parámetros faltantes, o `app_uuid` inválido: `{ \"mensaje\": \"El campo app_uuid es obligatorio y debe ser un UUID válido\" }`\n- `401 Unauthorized` – Token inválido: `{ \"mensaje\": \"Token invalido\" }`\n- `412 Precondition Failed` – El email ya existe en la blacklist."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"usuario@ejemplo.com\",\n    \"app_uuid\": \"0054da1d-8682-482e-aa15-c79891c625a5\",\n    \"blocked_reason\": \"Spam\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "http://{{DOMAIN_URL}}/blacklists",
+                  "protocol": "http",
+                  "host": ["{{DOMAIN_URL}}"],
+                  "path": ["blacklists"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": ""
+            },
+            {
+              "name": "400 Bad Request - Parámetros incompletos",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+                ],
+                "url": {
+                  "raw": "http://{{DOMAIN_URL}}/blacklists",
+                  "protocol": "http",
+                  "host": ["{{DOMAIN_URL}}"],
+                  "path": ["blacklists"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": ""
+            },
+            {
+              "name": "400 Bad Request - app_uuid inválido",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"usuario@ejemplo.com\",\n    \"app_uuid\": \"210902\",\n    \"blocked_reason\": \"Spam\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "http://{{DOMAIN_URL}}/blacklists",
+                  "protocol": "http",
+                  "host": ["{{DOMAIN_URL}}"],
+                  "path": ["blacklists"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n    \"mensaje\": \"El campo app_uuid es obligatorio y debe ser un UUID válido\"\n}"
+            },
+            {
+              "name": "401 Unauthorized - Token inválido",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer 12345" }
+                ],
+                "url": {
+                  "raw": "http://{{DOMAIN_URL}}/blacklists",
+                  "protocol": "http",
+                  "host": ["{{DOMAIN_URL}}"],
+                  "path": ["blacklists"]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n    \"mensaje\": \"Token invalido\"\n}"
+            },
+            {
+              "name": "412 Precondition Failed - Email duplicado",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"yaexistente@ejemplo.com\",\n    \"app_uuid\": \"0054da1d-8682-482e-aa15-c79891c625a5\",\n    \"blocked_reason\": \"Spam\"\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                  "raw": "http://{{DOMAIN_URL}}/blacklists",
+                  "protocol": "http",
+                  "host": ["{{DOMAIN_URL}}"],
+                  "path": ["blacklists"]
+                }
+              },
+              "status": "Precondition Failed",
+              "code": 412,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": ""
+            }
+          ]
+        },
+        {
+          "name": "Consultar email en la blacklist",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{TOKEN}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{DOMAIN_URL}}/blacklists/:email",
+              "protocol": "http",
+              "host": ["{{DOMAIN_URL}}"],
+              "path": ["blacklists", ":email"],
+              "variable": [
+                {
+                  "key": "email",
+                  "value": "usuario@ejemplo.com",
+                  "description": "Dirección de correo electrónico a consultar"
+                }
+              ]
+            },
+            "description": "Consulta si un correo electrónico se encuentra en la lista negra.\n\n**Autenticación:** Bearer Token requerido\n\n**Path Parameter:**\n| Parámetro | Tipo | Descripción |\n|---|---|---|\n| `email` | string | Email a consultar. Debe tener formato válido. |\n\n**Respuestas:**\n- `200 OK` – El email está en la blacklist.\n- `400 Bad Request` – Email con formato inválido: `{ \"mensaje\": \"El parámetro email es obligatorio y debe ser válido\" }`\n- `401 Unauthorized` – Token inválido: `{ \"mensaje\": \"Token invalido\" }` / Sin token: `{ \"mensaje\": \"Token no enviado o formato Bearer invalido\" }`\n- `404 Not Found` – El email no está en la blacklist."
+          },
+          "response": [
+            {
+              "name": "200 OK - Email en blacklist",
+              "originalRequest": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+                "url": {
+                  "raw": "http://{{DOMAIN_URL}}/blacklists/bloqueado@ejemplo.com",
+                  "protocol": "http",
+                  "host": ["{{DOMAIN_URL}}"],
+                  "path": ["blacklists", "bloqueado@ejemplo.com"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": ""
+            },
+            {
+              "name": "400 Bad Request - Email inválido",
+              "originalRequest": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+                "url": {
+                  "raw": "http://{{DOMAIN_URL}}/blacklists/a",
+                  "protocol": "http",
+                  "host": ["{{DOMAIN_URL}}"],
+                  "path": ["blacklists", "a"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n    \"mensaje\": \"El parámetro email es obligatorio y debe ser válido\"\n}"
+            },
+            {
+              "name": "401 Unauthorized - Token inválido",
+              "originalRequest": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer 12345" }],
+                "url": {
+                  "raw": "http://{{DOMAIN_URL}}/blacklists/test@test.com",
+                  "protocol": "http",
+                  "host": ["{{DOMAIN_URL}}"],
+                  "path": ["blacklists", "test@test.com"]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n    \"mensaje\": \"Token invalido\"\n}"
+            },
+            {
+              "name": "401 Unauthorized - Sin token",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://{{DOMAIN_URL}}/blacklists/test@test.com",
+                  "protocol": "http",
+                  "host": ["{{DOMAIN_URL}}"],
+                  "path": ["blacklists", "test@test.com"]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n    \"mensaje\": \"Token no enviado o formato Bearer invalido\"\n}"
+            },
+            {
+              "name": "404 Not Found - Email no está en blacklist",
+              "originalRequest": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+                "url": {
+                  "raw": "http://{{DOMAIN_URL}}/blacklists/notblacklisted@gmail.com",
+                  "protocol": "http",
+                  "host": ["{{DOMAIN_URL}}"],
+                  "path": ["blacklists", "notblacklisted@gmail.com"]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": ""
+            }
+          ]
+        }
+      ],
+      "description": "Endpoints para gestionar la lista negra de correos electrónicos."
+    }
+  ],
+  "variable": [
+    { "key": "DOMAIN_URL", "value": "", "description": "URL base del servidor. Ejemplo: localhost:5000" },
+    { "key": "VALID_USERNAME", "value": "", "description": "Usuario válido para autenticación" },
+    { "key": "VALID_PASSWORD", "value": "", "description": "Contraseña válida para autenticación" },
+    { "key": "TOKEN", "value": "", "description": "Token JWT (se asigna automáticamente al ejecutar 'Obtener Token')" }
+  ]
+}
