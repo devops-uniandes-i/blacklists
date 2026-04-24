@@ -189,4 +189,4 @@ api.add_resource(BlacklistResource, "/blacklists", "/blacklists/<string:email>")
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=3012)
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "3012")))

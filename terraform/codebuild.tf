@@ -1,5 +1,7 @@
 # ── IAM Role for CodeBuild ────────────────────────────────────────────────────
 
+data "aws_caller_identity" "current" {}
+
 resource "aws_iam_role" "codebuild" {
   name = "${local.name_prefix}-codebuild-role"
 
@@ -49,6 +51,24 @@ resource "aws_iam_role_policy" "codebuild" {
         ]
       },
       {
+        Sid    = "ElasticBeanstalkServiceBucket"
+        Effect = "Allow"
+        Action = [
+          "s3:CreateBucket",
+          "s3:GetBucketAcl",
+          "s3:GetBucketLocation",
+          "s3:ListBucket",
+          "s3:GetObject",
+          "s3:GetObjectVersion",
+          "s3:PutObject",
+          "s3:PutObjectAcl"
+        ]
+        Resource = [
+          "arn:aws:s3:::elasticbeanstalk-${var.aws_region}-${data.aws_caller_identity.current.account_id}",
+          "arn:aws:s3:::elasticbeanstalk-${var.aws_region}-${data.aws_caller_identity.current.account_id}/*"
+        ]
+      },
+      {
         Sid    = "ElasticBeanstalkDeploy"
         Effect = "Allow"
         Action = [
@@ -69,6 +89,7 @@ resource "aws_iam_role_policy" "codebuild" {
         Action = [
           "autoscaling:DescribeAutoScalingGroups",
           "autoscaling:DescribeScalingActivities",
+          "cloudformation:GetTemplate",
           "cloudformation:DescribeStackResource",
           "cloudformation:DescribeStackResources",
           "cloudformation:DescribeStacks",
@@ -94,6 +115,34 @@ resource "aws_iam_role_policy" "codebuild" {
   })
 }
 
+resource "aws_iam_role_policy" "codebuild_pipeline_artifacts" {
+  count = local.pipeline_enabled
+  name  = "${local.name_prefix}-codebuild-pipeline-artifacts-policy"
+  role  = aws_iam_role.codebuild.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "PipelineArtifactsReadWrite"
+        Effect = "Allow"
+        Action = [
+          "s3:GetBucketAcl",
+          "s3:GetBucketLocation",
+          "s3:GetObject",
+          "s3:GetObjectVersion",
+          "s3:ListBucket",
+          "s3:PutObject"
+        ]
+        Resource = [
+          aws_s3_bucket.pipeline_artifacts[0].arn,
+          "${aws_s3_bucket.pipeline_artifacts[0].arn}/*"
+        ]
+      }
+    ]
+  })
+}
+
 # ── CodeBuild Project ─────────────────────────────────────────────────────────
 
 resource "aws_codebuild_project" "blacklist" {
@@ -103,7 +152,7 @@ resource "aws_codebuild_project" "blacklist" {
   build_timeout = 20
 
   artifacts {
-    type = "NO_ARTIFACTS"
+    type = "CODEPIPELINE"
   }
 
   environment {
@@ -134,16 +183,9 @@ resource "aws_codebuild_project" "blacklist" {
   }
 
   source {
-    type            = "GITHUB"
-    location        = var.github_repo_url
-    git_clone_depth = 1
-
-    git_submodules_config {
-      fetch_submodules = false
-    }
+    type      = "CODEPIPELINE"
+    buildspec = "buildspec.yml"
   }
-
-  source_version = "main"
 
   logs_config {
     cloudwatch_logs {
@@ -153,23 +195,4 @@ resource "aws_codebuild_project" "blacklist" {
   }
 
   tags = merge(local.tags, { Name = "${local.name_prefix}-build" })
-}
-
-# ── GitHub Webhook (trigger on push to main) ──────────────────────────────────
-
-resource "aws_codebuild_webhook" "blacklist" {
-  project_name = aws_codebuild_project.blacklist.name
-  build_type   = "BUILD"
-
-  filter_group {
-    filter {
-      type    = "EVENT"
-      pattern = "PUSH"
-    }
-
-    filter {
-      type    = "HEAD_REF"
-      pattern = "^refs/heads/main$"
-    }
-  }
 }

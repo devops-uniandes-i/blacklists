@@ -15,21 +15,13 @@ phases:
 
   build:
     commands:
-      - export APP_VERSION=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-8)
-      - echo "=== Building application bundle version $APP_VERSION ==="
-      - cd $CODEBUILD_SRC_DIR/blacklist_app && zip -r $CODEBUILD_SRC_DIR/app_bundle.zip . -x "*__pycache__*" -x "*.pyc" -x "*/.pytest_cache/*" -x ".pytest_cache/*" -x ".env" -x "docker-compose.yml"
-      - echo "=== Uploading bundle to S3 ==="
-      - aws s3 cp $CODEBUILD_SRC_DIR/app_bundle.zip s3://$S3_BUCKET/versions/$APP_VERSION/app.zip
-      - echo "=== Creating Elastic Beanstalk application version $APP_VERSION ==="
-      - aws elasticbeanstalk create-application-version --application-name $EB_APP_NAME --version-label $APP_VERSION --source-bundle S3Bucket=$S3_BUCKET,S3Key=versions/$APP_VERSION/app.zip --region $AWS_DEFAULT_REGION
-      - echo "=== Deploying to $EB_ENV_NAME ==="
-      - aws elasticbeanstalk update-environment --environment-name $EB_ENV_NAME --version-label $APP_VERSION --region $AWS_DEFAULT_REGION
+      - echo "=== Packaging Elastic Beanstalk artifact from blacklist_app ==="
 
   post_build:
     commands:
-      - echo "=== Build completed. Version $APP_VERSION deployed to $EB_ENV_NAME ==="
+      - echo "=== Build completed. Deployment is handled by the CodePipeline Deploy stage ==="
 
 artifacts:
+  base-directory: blacklist_app
   files:
-    - app_bundle.zip
-  name: blacklist-build-$CODEBUILD_BUILD_NUMBER
+    - '**/*'

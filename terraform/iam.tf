@@ -25,6 +25,11 @@ resource "aws_iam_role_policy_attachment" "eb_service_managed_updates" {
   policy_arn = "arn:aws:iam::aws:policy/AWSElasticBeanstalkManagedUpdatesCustomerRolePolicy"
 }
 
+resource "aws_iam_role_policy_attachment" "eb_service_admin_access" {
+  role       = aws_iam_role.beanstalk_service.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess-AWSElasticBeanstalk"
+}
+
 # ── Elastic Beanstalk EC2 Instance Role ───────────────────────────────────────
 
 resource "aws_iam_role" "beanstalk_ec2" {

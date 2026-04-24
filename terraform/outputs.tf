@@ -98,3 +98,15 @@ output "codebuild_project_arn" {
   description = "ARN of the CodeBuild project"
   value       = aws_codebuild_project.blacklist.arn
 }
+
+# ── CodePipeline ──────────────────────────────────────────────────────────────
+
+output "codepipeline_name" {
+  description = "Name of the CodePipeline"
+  value       = var.enable_ci_pipeline ? aws_codepipeline.app_pipeline[0].name : null
+}
+
+output "codepipeline_arn" {
+  description = "ARN of the CodePipeline"
+  value       = var.enable_ci_pipeline ? aws_codepipeline.app_pipeline[0].arn : null
+}

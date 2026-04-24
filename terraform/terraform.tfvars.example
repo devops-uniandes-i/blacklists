@@ -53,3 +53,14 @@ auth_password  = "CHANGE_ME_admin_password"
 # ── CodeBuild ─────────────────────────────────────────────────────────────────
 
 github_repo_url = "https://github.com/OWNER/REPO"
+
+# ── CodePipeline ──────────────────────────────────────────────────────────────
+
+# Activa el pipeline para que cada commit a main dispare el build.
+enable_ci_pipeline = true
+
+# Branch que debe escuchar CodePipeline.
+repository_branch = "main"
+
+# Conexión creada previamente en AWS Developer Tools > Connections.
+codestar_connection_arn = "arn:aws:codeconnections:us-east-1:123456789012:connection/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"

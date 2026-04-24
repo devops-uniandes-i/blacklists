@@ -12,6 +12,8 @@ RUN pip install --upgrade pip && \
 
 COPY src/ ./src/
 
-EXPOSE 3012
+ENV PORT=80
+
+EXPOSE 80
 
 CMD ["python", "-m", "src.main"]
