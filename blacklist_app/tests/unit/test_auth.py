@@ -17,7 +17,7 @@ class TestTokenEndpoint:
             json={"username": "admin", "password": "wrong"},
         )
 
-        assert response.status_code == 200
+        assert response.status_code == 401
         assert "mensaje" in response.get_json()
 
     def test_wrong_username_returns_401(self, client):

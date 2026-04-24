@@ -98,7 +98,7 @@ class RootResource(Resource):
 
 class HealthResource(Resource):
     def get(self):
-        return "pong", 200
+        return "pong!", 200
 
 
 class TokenResource(Resource):
