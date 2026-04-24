@@ -5,7 +5,7 @@ services:
     build: .
     container_name: blacklist-app
     ports:
-      - "3012:80"
+      - "80:80"
     depends_on:
       db:
         condition: service_healthy   # ← espera que Postgres esté LISTO
