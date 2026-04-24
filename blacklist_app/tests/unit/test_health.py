@@ -11,4 +11,4 @@ class TestHealthEndpoint:
         response = client.get("/health")
 
         assert response.status_code == 200
-        assert response.get_json() == "pong"
+        assert response.get_json() == "pong!"
