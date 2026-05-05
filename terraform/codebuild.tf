@@ -51,54 +51,26 @@ resource "aws_iam_role_policy" "codebuild" {
         ]
       },
       {
-        Sid    = "ElasticBeanstalkServiceBucket"
+        Sid    = "ECRAuth"
         Effect = "Allow"
         Action = [
-          "s3:CreateBucket",
-          "s3:GetBucketAcl",
-          "s3:GetBucketLocation",
-          "s3:ListBucket",
-          "s3:GetObject",
-          "s3:GetObjectVersion",
-          "s3:PutObject",
-          "s3:PutObjectAcl"
-        ]
-        Resource = [
-          "arn:aws:s3:::elasticbeanstalk-${var.aws_region}-${data.aws_caller_identity.current.account_id}",
-          "arn:aws:s3:::elasticbeanstalk-${var.aws_region}-${data.aws_caller_identity.current.account_id}/*"
-        ]
-      },
-      {
-        Sid    = "ElasticBeanstalkDeploy"
-        Effect = "Allow"
-        Action = [
-          "elasticbeanstalk:CreateApplicationVersion",
-          "elasticbeanstalk:UpdateEnvironment",
-          "elasticbeanstalk:DescribeEnvironments",
-          "elasticbeanstalk:DescribeApplicationVersions",
-          "elasticbeanstalk:DescribeEvents",
-          "elasticbeanstalk:DescribeEnvironmentHealth",
-          "elasticbeanstalk:DescribeEnvironmentResources",
-          "elasticbeanstalk:ValidateConfigurationSettings"
+          "ecr:GetAuthorizationToken"
         ]
         Resource = "*"
       },
       {
-        Sid    = "ElasticBeanstalkUnderlyingServices"
+        Sid    = "ECRPushPull"
         Effect = "Allow"
         Action = [
-          "autoscaling:DescribeAutoScalingGroups",
-          "autoscaling:DescribeScalingActivities",
-          "cloudformation:GetTemplate",
-          "cloudformation:DescribeStackResource",
-          "cloudformation:DescribeStackResources",
-          "cloudformation:DescribeStacks",
-          "ec2:DescribeInstances",
-          "elasticloadbalancing:DescribeLoadBalancers",
-          "elasticloadbalancing:DescribeTargetGroups",
-          "elasticloadbalancing:DescribeTargetHealth"
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:BatchGetImage",
+          "ecr:CompleteLayerUpload",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:InitiateLayerUpload",
+          "ecr:PutImage",
+          "ecr:UploadLayerPart"
         ]
-        Resource = "*"
+        Resource = "arn:aws:ecr:${var.aws_region}:${data.aws_caller_identity.current.account_id}:repository/${local.ecr_repo_name}"
       },
       {
         Sid    = "CodeBuildReports"
@@ -147,7 +119,7 @@ resource "aws_iam_role_policy" "codebuild_pipeline_artifacts" {
 
 resource "aws_codebuild_project" "blacklist" {
   name          = "${local.name_prefix}-build"
-  description   = "Build, test, and deploy the Blacklist application to Elastic Beanstalk"
+  description   = "Build, test, and deploy the Blacklist application to ECS Fargate"
   service_role  = aws_iam_role.codebuild.arn
   build_timeout = 20
 
@@ -160,25 +132,26 @@ resource "aws_codebuild_project" "blacklist" {
     image                       = "aws/codebuild/standard:7.0"
     type                        = "LINUX_CONTAINER"
     image_pull_credentials_type = "CODEBUILD"
-
-    environment_variable {
-      name  = "S3_BUCKET"
-      value = aws_s3_bucket.app_bundle.id
-    }
-
-    environment_variable {
-      name  = "EB_APP_NAME"
-      value = aws_elastic_beanstalk_application.blacklist.name
-    }
-
-    environment_variable {
-      name  = "EB_ENV_NAME"
-      value = aws_elastic_beanstalk_environment.blacklist.name
-    }
+    privileged_mode             = true
 
     environment_variable {
       name  = "AWS_DEFAULT_REGION"
       value = var.aws_region
+    }
+
+    environment_variable {
+      name  = "AWS_ACCOUNT_ID"
+      value = data.aws_caller_identity.current.account_id
+    }
+
+    environment_variable {
+      name  = "ECR_REPOSITORY_URI"
+      value = var.ecr_repository_url
+    }
+
+    environment_variable {
+      name  = "CONTAINER_NAME"
+      value = "app-ecr-blacklist"
     }
   }
 

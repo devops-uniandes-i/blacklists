@@ -64,3 +64,12 @@ repository_branch = "main"
 
 # Conexión creada previamente en AWS Developer Tools > Connections.
 codestar_connection_arn = "arn:aws:codeconnections:us-east-1:123456789012:connection/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# Entrega 3: montaje manual en AWS
+ecs_cluster_name   = "cluster-app-blacklist-gl"       # nombre-del-cluster-manual
+ecs_service_name   = "python-app-final-codedeploy" # nombre-del-service-manual
+ecr_repository_url = "<AWS ACCOUNT ID>.dkr.ecr.us-east-1.amazonaws.com/ecr-blacklist"
+
+# CodeDeploy - nombres creados manualmente en AWS
+codedeploy_app_name         = "App-Blacklist-ECS" # Nombre de la aplicación CodeDeploy
+codedeploy_deployment_group = "DGP-Blacklist-ECS" # Nombre del deployment group CodeDeploy
