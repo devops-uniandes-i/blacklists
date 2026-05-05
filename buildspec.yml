@@ -12,16 +12,28 @@ phases:
     commands:
       - echo "=== Running unit tests ==="
       - cd $CODEBUILD_SRC_DIR/blacklist_app && python -m pytest tests/unit/ -v
+      - echo "=== Logging in to Amazon ECR ==="
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:=latest}
 
   build:
     commands:
-      - echo "=== Packaging Elastic Beanstalk artifact from blacklist_app ==="
+      - echo "=== Building Docker image ==="
+      - cd $CODEBUILD_SRC_DIR/blacklist_app
+      - docker build -t $ECR_REPOSITORY_URI:latest .
+      - docker tag $ECR_REPOSITORY_URI:latest $ECR_REPOSITORY_URI:$IMAGE_TAG
 
   post_build:
     commands:
-      - echo "=== Build completed. Deployment is handled by the CodePipeline Deploy stage ==="
+      - echo "=== Pushing Docker image to ECR ==="
+      - docker push $ECR_REPOSITORY_URI:latest
+      - docker push $ECR_REPOSITORY_URI:$IMAGE_TAG
+      - echo "=== Writing imageDetail.json for CodeDeploy ==="
+      - printf '{"ImageURI":"%s"}' $ECR_REPOSITORY_URI:$IMAGE_TAG > $CODEBUILD_SRC_DIR/imageDetail.json
 
 artifacts:
-  base-directory: blacklist_app
   files:
-    - '**/*'
+    - imageDetail.json
+    - appspec.json
+    - taskdef.json

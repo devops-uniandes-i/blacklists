@@ -16,9 +16,40 @@ variable "codestar_connection_arn" {
   default     = ""
 }
 
+variable "ecs_cluster_name" {
+  description = "Name of the manually-created ECS Fargate cluster"
+  type        = string
+  default     = ""
+}
+
+variable "ecs_service_name" {
+  description = "Name of the manually-created ECS Fargate service"
+  type        = string
+  default     = ""
+}
+
+variable "ecr_repository_url" {
+  description = "URL of the manually-created ECR repository (e.g. 123456789.dkr.ecr.us-east-1.amazonaws.com/my-app)"
+  type        = string
+  default     = ""
+}
+
+variable "codedeploy_app_name" {
+  description = "Name of the CodeDeploy application for ECS Blue/Green deployment"
+  type        = string
+  default     = ""
+}
+
+variable "codedeploy_deployment_group" {
+  description = "Name of the CodeDeploy deployment group for ECS Blue/Green deployment"
+  type        = string
+  default     = ""
+}
+
 locals {
   pipeline_enabled     = var.enable_ci_pipeline ? 1 : 0
   repository_full_name = trimsuffix(trimprefix(var.github_repo_url, "https://github.com/"), ".git")
+  ecr_repo_name        = var.ecr_repository_url != "" ? element(split("/", var.ecr_repository_url), length(split("/", var.ecr_repository_url)) - 1) : ""
 }
 
 resource "aws_s3_bucket" "pipeline_artifacts" {
@@ -94,62 +125,44 @@ resource "aws_iam_role_policy" "codepipeline" {
         Resource = var.codestar_connection_arn
       },
       {
-        Sid    = "DeployToElasticBeanstalk"
+        Sid    = "DeployToECS"
         Effect = "Allow"
         Action = [
-          "autoscaling:DescribeAutoScalingGroups",
-          "autoscaling:DescribeScalingActivities",
-          "autoscaling:ResumeProcesses",
-          "autoscaling:SuspendProcesses",
-          "cloudformation:GetTemplate",
-          "cloudformation:DescribeStackResource",
-          "cloudformation:DescribeStackResources",
-          "cloudformation:DescribeStacks",
-          "ec2:DescribeLaunchTemplates",
-          "ec2:DescribeLaunchTemplateVersions",
-          "ec2:DescribeSubnets",
-          "elasticbeanstalk:CreateApplicationVersion",
-          "elasticbeanstalk:DescribeApplicationVersions",
-          "elasticbeanstalk:DescribeEnvironments",
-          "elasticbeanstalk:DescribeEvents",
-          "elasticbeanstalk:UpdateEnvironment"
+          "ecs:DescribeServices",
+          "ecs:DescribeTaskDefinition",
+          "ecs:DescribeTasks",
+          "ecs:ListTasks",
+          "ecs:RegisterTaskDefinition",
+          "ecs:UpdateService",
+          "ecs:TagResource"
         ]
         Resource = "*"
       },
       {
-        Sid    = "ElasticBeanstalkServiceBucket"
+        Sid    = "CodeDeploy"
         Effect = "Allow"
         Action = [
-          "s3:CreateBucket",
-          "s3:GetBucketAcl",
-          "s3:GetBucketPolicy",
-          "s3:GetBucketLocation",
-          "s3:GetObjectAcl",
-          "s3:ListBucket",
-          "s3:DeleteObject",
-          "s3:GetObject",
-          "s3:GetObjectVersion",
-          "s3:PutObject",
-          "s3:PutObjectAcl"
+          "codedeploy:CreateDeployment",
+          "codedeploy:GetApplication",
+          "codedeploy:GetApplicationRevision",
+          "codedeploy:GetDeployment",
+          "codedeploy:GetDeploymentConfig",
+          "codedeploy:RegisterApplicationRevision"
         ]
-        Resource = [
-          "arn:aws:s3:::elasticbeanstalk-${var.aws_region}-${data.aws_caller_identity.current.account_id}",
-          "arn:aws:s3:::elasticbeanstalk-${var.aws_region}-${data.aws_caller_identity.current.account_id}/*"
-        ]
+        Resource = "*"
       },
       {
-        Sid    = "ElasticBeanstalkManagedEnvResources"
-        Effect = "Allow"
-        Action = [
-          "s3:GetBucketLocation",
-          "s3:ListBucket",
-          "s3:GetObject",
-          "s3:GetObjectVersion"
-        ]
-        Resource = [
-          "arn:aws:s3:::elasticbeanstalk-env-resources-${var.aws_region}",
-          "arn:aws:s3:::elasticbeanstalk-env-resources-${var.aws_region}/*"
-        ]
+        Sid      = "PassRoleForECS"
+        Effect   = "Allow"
+        Action   = "iam:PassRole"
+        Resource = "*"
+        Condition = {
+          StringEqualsIfExists = {
+            "iam:PassedToService" = [
+              "ecs-tasks.amazonaws.com"
+            ]
+          }
+        }
       }
     ]
   })
@@ -229,22 +242,23 @@ resource "aws_codepipeline" "app_pipeline" {
   stage {
     name = "Deploy"
 
-    on_failure {
-      result = "ROLLBACK"
-    }
-
     action {
       name            = "Deploy"
       category        = "Deploy"
       owner           = "AWS"
-      provider        = "ElasticBeanstalk"
+      provider        = "CodeDeployToECS"
       version         = "1"
-      region          = "us-east-1"
       input_artifacts = ["build_output"]
 
       configuration = {
-        ApplicationName = "blacklist-dev-app"
-        EnvironmentName = "blacklist-dev-env"
+        ApplicationName                = var.codedeploy_app_name
+        DeploymentGroupName            = var.codedeploy_deployment_group
+        TaskDefinitionTemplateArtifact = "build_output"
+        TaskDefinitionTemplatePath     = "taskdef.json"
+        AppSpecTemplateArtifact        = "build_output"
+        AppSpecTemplatePath            = "appspec.json"
+        Image1ArtifactName             = "build_output"
+        Image1ContainerName            = "IMAGE1_NAME"
       }
     }
   }
