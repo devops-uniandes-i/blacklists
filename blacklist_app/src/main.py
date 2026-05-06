@@ -94,7 +94,7 @@ def _request_ip() -> str:
 class RootResource(Resource):
     def get(self):
         print("Root endpoint accessed - parte1")
-        return {"Hello": "World Version 2026-05-06 00:45"}, 200
+        return {"Hello": "World Version 2026-05-06 00:56"}, 200
 
 
 class HealthResource(Resource):
