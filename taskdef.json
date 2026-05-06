@@ -1,5 +1,5 @@
 {
-    "executionRoleArn": "arn:aws:iam::636901877413:role/ecsTaskExecutionRole",
+    "executionRoleArn": "arn:aws:iam::121505946292:role/ecsTaskExecutionRole",
     "containerDefinitions": [
       {
         "portMappings": [
@@ -9,18 +9,22 @@
             "containerPort": 5000
           }
         ],
-
         "image": "<IMAGE1_NAME>",
         "essential": true,
-        "name": "app-ecr-blacklist-gl"
+        "name": "container-python-app",
+        "secrets": [
+          {
+            "name": "DATABASE_URL",
+            "valueFrom": "arn:aws:secretsmanager:us-east-1:121505946292:secret:blacklist/database-url"
+          }
+        ]
       }
     ],
-
     "requiresCompatibilities": [
       "FARGATE"
     ],
     "networkMode": "awsvpc",
     "cpu": "512",
     "memory": "1024",
-    "family": "tsk-app-blacklist-gl"
+    "family": "python-app"
   }

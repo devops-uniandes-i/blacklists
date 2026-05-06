@@ -7,7 +7,7 @@
           "Properties": {
             "TaskDefinition": "<TASK_DEFINITION>",
             "LoadBalancerInfo": {
-              "ContainerName": "app-ecr-blacklist-gl",
+              "ContainerName": "container-python-app",
               "ContainerPort": 5000
             }
           }

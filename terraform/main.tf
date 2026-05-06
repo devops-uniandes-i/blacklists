@@ -112,8 +112,8 @@ resource "aws_security_group" "app" {
 
   ingress {
     description     = "Application traffic from ALB"
-    from_port       = 80
-    to_port         = 80
+    from_port       = 5000
+    to_port         = 5000
     protocol        = "tcp"
     security_groups = [aws_security_group.alb.id]
   }
@@ -171,7 +171,7 @@ resource "aws_security_group" "rds" {
 resource "aws_db_subnet_group" "main" {
   name        = "${local.name_prefix}-db-subnet-group"
   description = "Subnet group for ${local.name_prefix} RDS instance"
-  subnet_ids  = aws_subnet.private[*].id
+  subnet_ids  = aws_subnet.public[*].id
 
   tags = merge(local.tags, { Name = "${local.name_prefix}-db-subnet-group" })
 }
@@ -219,7 +219,7 @@ resource "aws_db_instance" "main" {
   # Networking
   db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = [aws_security_group.rds.id]
-  publicly_accessible    = false
+  publicly_accessible    = true
 
   # Configuration
   parameter_group_name = aws_db_parameter_group.main.name
