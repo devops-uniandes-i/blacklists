@@ -1,5 +1,5 @@
 {
-    "executionRoleArn": "arn:aws:iam::121505946292:role/ecsTaskExecutionRole",
+    "executionRoleArn": "arn:aws:iam::636901877413:role/ecsTaskExecutionRole",
     "containerDefinitions": [
       {
         "portMappings": [
@@ -9,6 +9,7 @@
             "containerPort": 5000
           }
         ],
+
         "image": "<IMAGE1_NAME>",
         "essential": true,
         "name": "app-ecr-blacklist-gl",
@@ -23,6 +24,7 @@
         }
       }
     ],
+
     "requiresCompatibilities": [
       "FARGATE"
     ],

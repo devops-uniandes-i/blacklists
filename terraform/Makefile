@@ -3,7 +3,6 @@ TF      := terraform
 VERSION := $(shell date +%Y%m%d%H%M%S)
 
 .PHONY: help init plan infra-create infra-destroy \
-        rds-create rds-destroy \
         deploy-all-at-once deploy-rolling deploy-rolling-additional deploy-immutable
 
 help:
@@ -13,8 +12,6 @@ help:
 	@echo "  make plan                     Muestra el plan sin aplicar cambios"
 	@echo "  make infra-create             Crea toda la infraestructura (VPC + RDS + EB) con AllAtOnce"
 	@echo "  make infra-destroy            Destruye toda la infraestructura"
-	@echo "  make rds-create               Crea solo el cluster RDS (y sus dependencias: VPC, subnets, SGs)"
-	@echo "  make rds-destroy              Destruye solo el cluster RDS (y sus dependencias)"
 	@echo ""
 	@echo "=== Estrategias de Despliegue ==="
 	@echo "  make deploy-all-at-once       Despliega en todas las instancias simultaneamente"
@@ -37,18 +34,6 @@ infra-create: init
 
 infra-destroy: init
 	$(TF) destroy -var-file="$(TFVARS)" -auto-approve
-
-# ── RDS ───────────────────────────────────────────────────────────────────────
-
-rds-create: init
-	$(TF) apply -var-file="$(TFVARS)" \
-	  -target=aws_db_instance.main \
-	  -auto-approve
-
-rds-destroy: init
-	$(TF) destroy -var-file="$(TFVARS)" \
-	  -target=aws_db_instance.main \
-	  -auto-approve
 
 # ── Estrategias de Despliegue ─────────────────────────────────────────────────
 # Cada comando usa un VERSION distinto para forzar que Beanstalk reconozca
