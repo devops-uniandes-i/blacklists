@@ -12,3 +12,4 @@ marshmallow==3.26.1
 marshmallow-sqlalchemy>=0.29
 Flask-JWT-Extended==4.7.1
 psycopg2-binary>=2.9.9
+newrelic==13.0.0

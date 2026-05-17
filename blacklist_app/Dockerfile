@@ -11,9 +11,11 @@ RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 COPY src/ ./src/
+COPY newrelic.ini .
 
 ENV PORT=5000
+ENV NEW_RELIC_CONFIG_FILE=/app/newrelic.ini
 
 EXPOSE 5000
 
-CMD ["python", "-m", "src.main"]
+CMD ["newrelic-admin", "run-program", "python", "-m", "src.main"]
