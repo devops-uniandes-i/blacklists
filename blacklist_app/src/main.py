@@ -1,6 +1,7 @@
 import os
 import re
 import uuid
+import newrelic.agent
 from datetime import datetime, timezone
 from flask import Flask, jsonify, request
 from flask_jwt_extended import create_access_token, jwt_required
@@ -93,18 +94,21 @@ def _request_ip() -> str:
 
 class RootResource(Resource):
     def get(self):
+        newrelic.agent.set_transaction_name('RootResource/get')
         print("Root endpoint accessed - parte1")
         return {"Hello": "World Version 2026-05-06 00:56"}, 200
 
 
 class HealthResource(Resource):
     def get(self):
+        newrelic.agent.set_transaction_name('HealthResource/get')
         print("Health check received - parte2")
         return "pong!", 200
 
 
 class TokenResource(Resource):
     def post(self):
+        newrelic.agent.set_transaction_name('TokenResource/post')
         payload = request.get_json(silent=True) or {}
         data = token_input_schema.load(payload)
 
@@ -120,6 +124,7 @@ class TokenResource(Resource):
 class BlacklistResource(Resource):
     @jwt_required()
     def get(self, email=None):
+        newrelic.agent.set_transaction_name('BlacklistResource/get')
         if email is None:
             email = (request.args.get("email") or "").strip().lower()
         if not email or not bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email)):
@@ -138,6 +143,7 @@ class BlacklistResource(Resource):
 
     @jwt_required()
     def post(self):
+        newrelic.agent.set_transaction_name('BlacklistResource/post')
         payload = request.get_json(silent=True) or {}
 
         missing_fields = []
